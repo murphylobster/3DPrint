@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Print Quote">
+  <title>3D Print Quote Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #181818;
+      --surface2: #222222;
+      --border: rgba(255,255,255,0.08);
+      --border-mid: rgba(255,255,255,0.15);
+      --text: #f0f0f0;
+      --muted: #888;
+      --dim: #555;
+      --accent: #e8ff3a;
+      --accent-dim: rgba(232, 255, 58, 0.12);
+      --accent-border: rgba(232, 255, 58, 0.35);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    header {
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 0.5px solid var(--border-mid);
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0.4rem;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    h1 {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+
+    .tagline {
+      font-size: 13px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    .section {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 1rem;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .row:last-child { margin-bottom: 0; }
+
+    .row label {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 400;
+      color: #ccc;
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    input[type=number] {
+      width: 80px;
+      padding: 7px 10px;
+      background: var(--surface2);
+      border: 0.5px solid var(--border-mid);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 16px; /* 16px prevents iOS auto-zoom */
+      text-align: right;
+      outline: none;
+      -moz-appearance: textfield;
+      transition: border-color 0.15s;
+      min-height: 44px; /* iOS minimum touch target */
+    }
+
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    input[type=number]:focus {
+      border-color: var(--accent);
+    }
+
+    .unit {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim);
+      min-width: 32px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .metric {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+
+    .metric-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      color: var(--dim);
+      margin-top: 3px;
+    }
+
+    .total-card {
+      background: var(--accent-dim);
+      border: 0.5px solid var(--accent-border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .total-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #ccc;
+      margin-bottom: 3px;
+    }
+
+    .total-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .total-amount {
+      font-family: var(--font-mono);
+      font-size: 36px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .breakdown {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 10px;
+    }
+
+    .b-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      font-size: 13px;
+    }
+
+    .b-row .b-label { color: var(--muted); }
+    .b-row .b-val {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .b-divider {
+      border: none;
+      border-top: 0.5px solid var(--border);
+      margin: 6px 0;
+    }
+
+    .b-row.total-row .b-label {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .b-row.total-row .b-val {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .round-btn {
+      padding: 8px 12px;
+      background: transparent;
+      border: 0.5px solid var(--accent-border);
+      border-radius: 6px;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: all 0.15s;
+      white-space: nowrap;
+      min-height: 44px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .round-btn:hover {
+      background: var(--accent);
+      color: #0f0f0f;
+    }
+
+    .round-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .copy-btn {
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      border: 0.5px solid var(--border-mid);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: all 0.15s;
+      margin-bottom: 8px;
+      min-height: 44px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .copy-btn:hover {
+      border-color: var(--accent-border);
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .copy-note {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      height: 16px;
+      transition: opacity 0.3s;
+    }
+
+    .policy-box {
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-left: 2px solid var(--dim);
+      border-radius: 8px;
+    }
+
+    .policy-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    .policy-text {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo-row">
+      <div class="logo-icon">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" stroke="#0f0f0f" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M8 2V8M8 8L14 5.5M8 8L2 5.5" stroke="#0f0f0f" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <h1>3D Print Quote Calculator</h1>
+    </div>
+    <div class="tagline">Bambu A1 · CAD pricing · customer-supplied files</div>
+  </header>
+
+  <div class="section">
+    <div class="section-title">Job details</div>
+    <div class="row">
+      <label>Print time</label>
+      <div class="input-wrap">
+        <input type="number" id="hours" value="4" min="0" step="0.5">
+        <span class="unit">hrs</span>
+      </div>
+    </div>
+    <div class="row">
+      <label>Material used</label>
+      <div class="input-wrap">
+        <input type="number" id="grams" value="80" min="0" step="5">
+        <span class="unit">g</span>
+      </div>
+    </div>
+    <div class="row">
+      <label>Slicer / prep time</label>
+      <div class="input-wrap">
+        <input type="number" id="prep" value="15" min="0" step="5">
+        <span class="unit">min</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Your rates (CAD)</div>
+    <div class="row">
+      <label>Hourly print rate</label>
+      <div class="input-wrap">
+        <input type="number" id="hourly" value="2.00" min="0" step="0.25">
+        <span class="unit">$/hr</span>
+      </div>
+    </div>
+    <div class="row">
+      <label>Material rate</label>
+      <div class="input-wrap">
+        <input type="number" id="perGram" value="0.01" min="0" step="0.01">
+        <span class="unit">$/g</span>
+      </div>
+    </div>
+    <div class="row">
+      <label>Prep rate</label>
+      <div class="input-wrap">
+        <input type="number" id="prepRate" value="10.00" min="0" step="0.50">
+        <span class="unit">$/hr</span>
+      </div>
+    </div>
+    <div class="row">
+      <label>Profit margin</label>
+      <div class="input-wrap">
+        <input type="number" id="margin" value="15" min="0" max="100" step="5">
+        <span class="unit">%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Print cost</div>
+      <div class="metric-value" id="m-print">$0.00</div>
+      <div class="metric-sub">time × hourly rate</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Material cost</div>
+      <div class="metric-value" id="m-material">$0.00</div>
+      <div class="metric-sub">grams × $/g</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Prep cost</div>
+      <div class="metric-value" id="m-prep">$0.00</div>
+      <div class="metric-sub">setup & slicing</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Raw cost</div>
+      <div class="metric-value" id="m-raw">$0.00</div>
+      <div class="metric-sub">before margin</div>
+    </div>
+  </div>
+
+  <div class="total-card">
+    <div>
+      <div class="total-label">Quote to customer</div>
+      <div class="total-sub" id="margin-label">incl. 20% margin</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+      <div class="total-amount" id="total">$0.00</div>
+      <button class="round-btn" id="round-btn" onclick="roundTotal()">ROUND TO NEAREST $</button>
+    </div>
+  </div>
+
+  <div class="breakdown">
+    <div class="b-row"><span class="b-label">Print time</span><span class="b-val" id="b-print">$0.00</span></div>
+    <div class="b-row"><span class="b-label">Material</span><span class="b-val" id="b-material">$0.00</span></div>
+    <div class="b-row"><span class="b-label">Prep</span><span class="b-val" id="b-prep">$0.00</span></div>
+    <hr class="b-divider">
+    <div class="b-row"><span class="b-label">Raw cost</span><span class="b-val" id="b-raw">$0.00</span></div>
+    <div class="b-row"><span class="b-label" id="b-margin-label">Margin (20%)</span><span class="b-val" id="b-margin">$0.00</span></div>
+    <hr class="b-divider">
+    <div class="b-row total-row"><span class="b-label">Total (CAD)</span><span class="b-val" id="b-total">$0.00</span></div>
+  </div>
+
+  <button class="copy-btn" onclick="copyQuote()">COPY QUOTE SUMMARY →</button>
+  <div class="copy-note" id="copy-note"></div>
+
+  <div class="policy-box">
+    <div class="policy-title">File policy reminder</div>
+    <div class="policy-text">
+      Customer-supplied files are printed as provided. I'll flag obvious issues before starting, but I don't offer file repair or design services and can't guarantee results for untested designs. Files from Makerworld / Printables are preferred.
+    </div>
+  </div>
+</div>
+
+<script>
+  const ids = ['hours','grams','prep','hourly','perGram','prepRate','margin'];
+  let roundedTotal = null;
+
+  function fmt(n) { return '$' + n.toFixed(2); }
+
+  function roundTotal() {
+    const rawVal = parseFloat(document.getElementById('total').textContent.replace('$','')) || 0;
+    roundedTotal = Math.round(rawVal);
+    document.getElementById('total').textContent = '$' + roundedTotal + '.00';
+    document.getElementById('b-total').textContent = '$' + roundedTotal + '.00';
+    document.getElementById('round-btn').disabled = true;
+  }
+
+  function calc() {
+    roundedTotal = null;
+    document.getElementById('round-btn').disabled = false;
+    const hours    = parseFloat(document.getElementById('hours').value)    || 0;
+    const grams    = parseFloat(document.getElementById('grams').value)    || 0;
+    const prepMin  = parseFloat(document.getElementById('prep').value)     || 0;
+    const hourly   = parseFloat(document.getElementById('hourly').value)   || 0;
+    const perGram  = parseFloat(document.getElementById('perGram').value)  || 0;
+    const prepRate = parseFloat(document.getElementById('prepRate').value) || 0;
+    const margin   = parseFloat(document.getElementById('margin').value)   || 0;
+
+    const printCost = hours * hourly;
+    const matCost   = grams * perGram;
+    const prepCost  = (prepMin / 60) * prepRate;
+    const raw       = printCost + matCost + prepCost;
+    const marginAmt = raw * (margin / 100);
+    const total     = raw + marginAmt;
+
+    document.getElementById('m-print').textContent    = fmt(printCost);
+    document.getElementById('m-material').textContent = fmt(matCost);
+    document.getElementById('m-prep').textContent     = fmt(prepCost);
+    document.getElementById('m-raw').textContent      = fmt(raw);
+    document.getElementById('total').textContent      = fmt(total);
+    document.getElementById('margin-label').textContent = 'incl. ' + margin.toFixed(0) + '% margin';
+
+    document.getElementById('b-print').textContent    = fmt(printCost);
+    document.getElementById('b-material').textContent = fmt(matCost);
+    document.getElementById('b-prep').textContent     = fmt(prepCost);
+    document.getElementById('b-raw').textContent      = fmt(raw);
+    document.getElementById('b-margin-label').textContent = 'Margin (' + margin.toFixed(0) + '%)';
+    document.getElementById('b-margin').textContent   = fmt(marginAmt);
+    document.getElementById('b-total').textContent    = fmt(total);
+  }
+
+  ids.forEach(id => document.getElementById(id).addEventListener('input', calc));
+  calc();
+
+  function copyQuote() {
+    const hours    = document.getElementById('hours').value;
+    const grams    = document.getElementById('grams').value;
+    const prep     = document.getElementById('prep').value;
+    const margin   = document.getElementById('margin').value;
+    const raw      = document.getElementById('b-raw').textContent;
+    const total    = document.getElementById('b-total').textContent;
+
+    const text = `3D Print Quote\n--------------\nPrint time: ${hours} hrs\nMaterial: ${grams}g\nPrep: ${prep} min\nRaw cost: ${raw}\nMargin: ${margin}%\nTotal (CAD): ${total}\n\nNote: Customer-supplied files are printed as provided. Results not guaranteed for untested designs.`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      const note = document.getElementById('copy-note');
+      note.textContent = 'copied to clipboard';
+      setTimeout(() => { note.textContent = ''; }, 2500);
+    });
+  }
+</script>
+</body>
+</html>
