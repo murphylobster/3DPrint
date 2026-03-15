@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PS Admin">
+  <title>The Print Shed — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface2: #1e1e1e;
+      --surface3: #282828;
+      --border: rgba(255,255,255,0.07);
+      --border-mid: rgba(255,255,255,0.13);
+      --text: #efefef;
+      --muted: #777;
+      --dim: #444;
+      --accent: #e8ff3a;
+      --accent-dim: rgba(232,255,58,0.08);
+      --accent-border: rgba(232,255,58,0.25);
+      --red: #c84b2f;
+      --teal: #4a9d8f;
+      --blue: #4a7fc1;
+      --amber: #d4a843;
+      --green: #4a9d6f;
+      --purple: #7a5fc1;
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Grid background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 0.5px solid var(--border-mid);
+      animation: fadeUp 0.4s ease forwards;
+    }
+
+    .header-logo {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      border-radius: 10px;
+      background: var(--surface2);
+      padding: 4px;
+    }
+
+    .header-text { flex: 1; }
+
+    .header-title {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+
+    .header-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .header-time {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim);
+      text-align: right;
+    }
+
+    .header-date {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--muted);
+      text-align: right;
+      margin-top: 2px;
+    }
+
+    /* ── Section labels ── */
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      margin-bottom: 10px;
+      margin-top: 1.5rem;
+    }
+
+    /* ── Tool cards ── */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .tool-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 14px;
+      padding: 1.1rem 1.25rem;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.4s ease forwards;
+      opacity: 0;
+    }
+
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--card-accent, var(--accent));
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .tool-card:hover {
+      border-color: var(--border-mid);
+      background: var(--surface2);
+      transform: translateY(-2px);
+    }
+
+    .tool-card:hover::before { opacity: 1; }
+    .tool-card:active { transform: scale(0.98) translateY(0); }
+
+    .tool-card.wide { grid-column: 1 / -1; flex-direction: row; align-items: center; }
+
+    .tool-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--card-accent-dim, var(--accent-dim));
+      border: 0.5px solid var(--card-accent-border, var(--accent-border));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tool-icon svg { width: 16px; height: 16px; }
+
+    .tool-content { flex: 1; min-width: 0; }
+
+    .tool-name {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+
+    .tool-desc {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.5;
+    }
+
+    .tool-arrow {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--dim);
+      transition: color 0.2s, transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .tool-card:hover .tool-arrow {
+      color: var(--card-accent, var(--accent));
+      transform: translateX(3px);
+    }
+
+    /* ── Status strip ── */
+    .status-strip {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 12px;
+      padding: 0.875rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      animation: fadeUp 0.4s ease forwards;
+      opacity: 0;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.amber { background: var(--amber); }
+    .status-dot.red   { background: var(--red); }
+
+    .status-text {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .status-val {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text);
+    }
+
+    /* ── Quick note ── */
+    .quick-note {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      animation: fadeUp 0.4s ease forwards;
+      opacity: 0;
+    }
+
+    .note-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+    }
+
+    .note-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 300;
+      resize: none;
+      outline: none;
+      line-height: 1.6;
+      min-height: 52px;
+    }
+
+    .note-input::placeholder { color: var(--dim); }
+
+    .note-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 0.5px solid var(--border);
+    }
+
+    .note-saved {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+    }
+
+    .note-clear {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.15s;
+    }
+
+    .note-clear:hover { color: var(--red); }
+
+    /* ── Footer ── */
+    .dash-footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      animation: fadeUp 0.4s 0.5s ease forwards;
+      opacity: 0;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .tool-card:nth-child(1) { animation-delay: 0.05s; }
+    .tool-card:nth-child(2) { animation-delay: 0.10s; }
+    .tool-card:nth-child(3) { animation-delay: 0.15s; }
+    .tool-card:nth-child(4) { animation-delay: 0.20s; }
+    .tool-card:nth-child(5) { animation-delay: 0.25s; }
+    .tool-card:nth-child(6) { animation-delay: 0.30s; }
+    .tool-card:nth-child(7) { animation-delay: 0.35s; }
+
+    .status-strip:nth-of-type(1) { animation-delay: 0.10s; }
+    .status-strip:nth-of-type(2) { animation-delay: 0.15s; }
+
+    .quick-note { animation-delay: 0.25s; }
+
+    /* ── Ticker ── */
+    .ticker {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      white-space: nowrap;
+      overflow: hidden;
+      border-top: 0.5px solid var(--border);
+      padding: 6px 1.25rem;
+      position: relative;
+    }
+
+    .ticker-inner {
+      display: inline-block;
+      animation: ticker 20s linear infinite;
+    }
+
+    @keyframes ticker {
+      0%   { transform: translateX(100vw); }
+      100% { transform: translateX(-100%); }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="header">
+    <img src="printshed_logo.png" alt="The Print Shed" class="header-logo" onerror="this.style.display='none'">
+    <div class="header-text">
+      <div class="header-title">THE PRINT SHED</div>
+      <div class="header-sub">Admin Dashboard · Ryan Cameron</div>
+    </div>
+    <div>
+      <div class="header-time" id="clock">--:--</div>
+      <div class="header-date" id="dateline">---</div>
+    </div>
+  </div>
+
+  <!-- Internal tools -->
+  <div class="section-label">Your tools</div>
+  <div class="tool-grid">
+
+    <a href="quote-tool.html" class="tool-card" style="--card-accent:var(--accent);--card-accent-dim:var(--accent-dim);--card-accent-border:var(--accent-border);">
+      <div class="tool-icon">
+        <svg viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round">
+          <rect x="2" y="2" width="12" height="12" rx="2"/>
+          <path d="M5 8h6M5 5.5h4M5 10.5h3"/>
+        </svg>
+      </div>
+      <div class="tool-content">
+        <div class="tool-name">Quote tool</div>
+        <div class="tool-desc">Price a job — internal use only</div>
+      </div>
+      <div class="tool-arrow">→</div>
+    </a>
+
+    <a href="invoice-tool.html" class="tool-card" style="--card-accent:var(--teal);--card-accent-dim:rgba(74,157,143,0.08);--card-accent-border:rgba(74,157,143,0.25);">
+      <div class="tool-icon">
+        <svg viewBox="0 0 16 16" fill="none" stroke="var(--teal)" stroke-width="1.4" stroke-linecap="round">
+          <rect x="3" y="1" width="10" height="14" rx="2"/>
+          <path d="M5.5 5h5M5.5 8h5M5.5 11h3"/>
+          <circle cx="11" cy="11.5" r="0.5" fill="var(--teal)"/>
+        </svg>
+      </div>
+      <div class="tool-content">
+        <div class="tool-name">Invoice tool</div>
+        <div class="tool-desc">Create & print invoices</div>
+      </div>
+      <div class="tool-arrow">→</div>
+    </a>
+
+    <a href="PrintShed_Tracker.xlsx" download class="tool-card" style="--card-accent:var(--green);--card-accent-dim:rgba(74,157,111,0.08);--card-accent-border:rgba(74,157,111,0.25);">
+      <div class="tool-icon">
+        <svg viewBox="0 0 16 16" fill="none" stroke="var(--green)" stroke-width="1.4" stroke-linecap="round">
+          <rect x="2" y="2" width="12" height="12" rx="2"/>
+          <path d="M2 6h12M6 6v8M10 6v8"/>
+          <path d="M4 9h2M8 9h2M4 12h2M8 12h2"/>
+        </svg>
+      </div>
+      <div class="tool-content">
+        <div class="tool-name">Business tracker</div>
+        <div class="tool-desc">Sales, expenses & tax summary</div>
+      </div>
+      <div class="tool-arrow">↓</div>
+    </a>
+
+    <a href="index.html" target="_blank" class="tool-card" style="--card-accent:var(--blue);--card-accent-dim:rgba(74,127,193,0.08);--card-accent-border:rgba(74,127,193,0.25);">
+      <div class="tool-icon">
+        <svg viewBox="0 0 16 16" fill="none" stroke="var(--blue)" stroke-width="1.4" stroke-linecap="round">
+          <circle cx="8" cy="8" r="6"/>
+          <path d="M8 2c-2 2-2 8 0 12M8 2c2 2 2 8 0 12M2 8h12"/>
+        </svg>
+      </div>
+      <div class="tool-content">
+        <div class="tool-name">Customer page</div>
+        <div class="tool-desc">Public quote form — preview it</div>
+      </div>
+      <div class="tool-arrow">↗</div>
+    </a>
+
+  </div>
+
+  <!-- External links -->
+  <div class="section-label">External</div>
+  <div class="tool-grid">
+
+    <a href="https://www.facebook.com/ThePrintShedNS" target="_blank" class="tool-card" style="--card-accent:var(--blue);--card-accent-dim:rgba(74,127,193,0.08);--card-accent-border:rgba(74,127,193,0.25);">
+      <div class="tool-icon">
+        <svg viewBox="0 0 16 16" fill="var(--blue)" stroke="none">
+          <path d="M14 8a6 6 0 1 0-6.938 5.928V9.928H5.398V8h1.664V6.617c0-1.645.979-2.554 2.477-2.554.717 0 1.468.128 1.468.128v1.614h-.827c-.815 0-1.069.505-1.069 1.023V8h1.82l-.291 1.928H9.111v4.001A6.001 6.001 0 0 0 14 8z"/>
+        </svg>
+      </div>
+      <div class="tool-content">
+        <div class="tool-name">Facebook page</div>
+        <div class="tool-desc">The Print Shed NS</div>
+      </div>
+      <div class="tool-arrow">↗</div>
+    </a>
+
+    <a href="https://m.me/61580700602148" target="_blank" class="tool-card" style="--card-accent:var(--purple);--card-accent-dim:rgba(122,95,193,0.08);--card-accent-border:rgba(122,95,193,0.25);">
+      <div class="tool-icon">
+        <svg viewBox="0 0 16 16" fill="var(--purple)" stroke="none">
+          <path d="M8 1C4.134 1 1 3.806 1 7.243c0 1.97.915 3.73 2.363 4.924V14l2.15-1.178a7.33 7.33 0 0 0 2.487.421C11.866 13.243 15 10.437 15 7 15 3.806 11.866 1 8 1zm.724 8.29-1.77-1.885-3.453 1.885 3.796-4.027 1.813 1.885 3.409-1.885-3.795 4.027z"/>
+        </svg>
+      </div>
+      <div class="tool-content">
+        <div class="tool-name">Messenger</div>
+        <div class="tool-desc">Open your inbox</div>
+      </div>
+      <div class="tool-arrow">↗</div>
+    </a>
+
+    <a href="https://makerworld.com" target="_blank" class="tool-card" style="--card-accent:var(--red);--card-accent-dim:rgba(200,75,47,0.08);--card-accent-border:rgba(200,75,47,0.25);">
+      <div class="tool-icon">
+        <svg viewBox="0 0 16 16" fill="none" stroke="var(--red)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 2l5 3v6l-5 3-5-3V5z"/>
+          <path d="M8 2v8M8 10l5-3M8 10l-5-3"/>
+        </svg>
+      </div>
+      <div class="tool-content">
+        <div class="tool-name">Makerworld</div>
+        <div class="tool-desc">Browse 3D models</div>
+      </div>
+      <div class="tool-arrow">↗</div>
+    </a>
+
+    <a href="https://www.printables.com" target="_blank" class="tool-card" style="--card-accent:var(--amber);--card-accent-dim:rgba(212,168,67,0.08);--card-accent-border:rgba(212,168,67,0.25);">
+      <div class="tool-icon">
+        <svg viewBox="0 0 16 16" fill="none" stroke="var(--amber)" stroke-width="1.4" stroke-linecap="round">
+          <rect x="3" y="3" width="10" height="10" rx="2"/>
+          <path d="M6 8h4M8 6v4"/>
+        </svg>
+      </div>
+      <div class="tool-content">
+        <div class="tool-name">Printables</div>
+        <div class="tool-desc">Browse 3D models</div>
+      </div>
+      <div class="tool-arrow">↗</div>
+    </a>
+
+  </div>
+
+  <!-- Quick note -->
+  <div class="section-label">Quick note</div>
+  <div class="quick-note">
+    <div class="note-label">Scratch pad — saves automatically</div>
+    <textarea class="note-input" id="notepad" placeholder="Jot down a job, reminder, or to-do..."></textarea>
+    <div class="note-footer">
+      <span class="note-saved" id="note-saved"></span>
+      <button class="note-clear" onclick="clearNote()">clear</button>
+    </div>
+  </div>
+
+  <div class="dash-footer">
+    The Print Shed · Admin · Not for public sharing
+  </div>
+
+</div>
+
+<!-- Ticker -->
+<div class="ticker">
+  <span class="ticker-inner" id="ticker-text">
+    THE PRINT SHED &nbsp;·&nbsp; ANNAPOLIS VALLEY, NS &nbsp;·&nbsp; PLA & PETG &nbsp;·&nbsp; QUOTE → INVOICE → TRACK → REPEAT &nbsp;·&nbsp; HST THRESHOLD: $30,000 CAD/YR &nbsp;·&nbsp;
+  </span>
+</div>
+
+<script>
+  // ── Clock ──────────────────────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('clock').textContent = h + ':' + m;
+
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    document.getElementById('dateline').textContent =
+      days[now.getDay()] + ' ' + now.getDate() + ' ' + months[now.getMonth()];
+  }
+  updateClock();
+  setInterval(updateClock, 10000);
+
+  // ── Notepad ────────────────────────────────────────────────────────
+  const notepad = document.getElementById('notepad');
+  const noteSaved = document.getElementById('note-saved');
+
+  notepad.value = localStorage.getItem('ps_note') || '';
+
+  let noteTimer = null;
+  notepad.addEventListener('input', () => {
+    clearTimeout(noteTimer);
+    noteSaved.textContent = 'saving...';
+    noteTimer = setTimeout(() => {
+      localStorage.setItem('ps_note', notepad.value);
+      noteSaved.textContent = 'saved';
+      setTimeout(() => { noteSaved.textContent = ''; }, 1500);
+    }, 600);
+  });
+
+  function clearNote() {
+    if (notepad.value && !confirm('Clear the notepad?')) return;
+    notepad.value = '';
+    localStorage.removeItem('ps_note');
+    noteSaved.textContent = 'cleared';
+    setTimeout(() => { noteSaved.textContent = ''; }, 1500);
+  }
+</script>
+</body>
+</html>
