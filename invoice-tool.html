@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Print Shed — Invoice Tool</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #181818;
+      --surface2: #222222;
+      --border: rgba(255,255,255,0.08);
+      --border-mid: rgba(255,255,255,0.15);
+      --text: #f0f0f0;
+      --muted: #888;
+      --dim: #555;
+      --accent: #e8ff3a;
+      --accent-dim: rgba(232,255,58,0.10);
+      --accent-border: rgba(232,255,58,0.30);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-weight: 300;
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .app { max-width: 760px; margin: 0 auto; }
+
+    /* ── Header ── */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 0.5px solid var(--border-mid);
+    }
+
+    .app-title { font-family: var(--font-mono); font-size: 14px; font-weight: 500; letter-spacing: 0.04em; }
+    .app-sub { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    .inv-num-badge {
+      background: var(--accent-dim);
+      border: 0.5px solid var(--accent-border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    /* ── Sections ── */
+    .section {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 1rem;
+    }
+
+    .row { display: flex; gap: 12px; margin-bottom: 10px; }
+    .row:last-child { margin-bottom: 0; }
+    .col { flex: 1; }
+    .col-sm { flex: 0 0 140px; }
+
+    label.lbl {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 5px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--surface2);
+      border: 0.5px solid var(--border-mid);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+      cursor: pointer;
+    }
+
+    /* ── Line items ── */
+    .line-items { width: 100%; border-collapse: collapse; }
+
+    .line-items th {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 8px 8px;
+      text-align: left;
+      border-bottom: 0.5px solid var(--border-mid);
+    }
+
+    .line-items th.right { text-align: right; }
+
+    .line-item-row td {
+      padding: 6px 8px;
+      border-bottom: 0.5px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .line-item-row input {
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 4px 0;
+      font-size: 13px;
+      border-bottom: 0.5px solid transparent;
+      transition: border-color 0.15s;
+    }
+
+    .line-item-row input:focus {
+      border-bottom-color: var(--accent);
+      background: transparent;
+    }
+
+    .line-item-row .qty { width: 60px; text-align: center; }
+    .line-item-row .rate { width: 90px; text-align: right; }
+    .line-item-row .amount { width: 90px; text-align: right; font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
+    .line-item-row .del-btn {
+      width: 28px; height: 28px;
+      background: transparent;
+      border: 0.5px solid var(--border-mid);
+      border-radius: 6px;
+      color: var(--dim);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .line-item-row .del-btn:hover { border-color: #c84b2f; color: #c84b2f; }
+
+    .add-line-btn {
+      background: transparent;
+      border: 0.5px dashed var(--border-mid);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 8px;
+      width: 100%;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.15s;
+      letter-spacing: 0.05em;
+    }
+    .add-line-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Totals ── */
+    .totals { margin-top: 1rem; }
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 13px;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .totals-row .tl { color: var(--muted); }
+    .totals-row .tv { font-family: var(--font-mono); color: var(--text); }
+    .totals-grand {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--accent-dim);
+      border: 0.5px solid var(--accent-border);
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+    .totals-grand .tl { font-size: 14px; font-weight: 500; }
+    .totals-grand .tv { font-family: var(--font-mono); font-size: 22px; font-weight: 500; color: var(--accent); }
+
+    /* ── Action buttons ── */
+    .actions { display: flex; gap: 10px; margin-top: 1rem; }
+
+    .btn {
+      flex: 1;
+      padding: 13px;
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: all 0.15s;
+      border: 0.5px solid var(--border-mid);
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .btn:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-dim); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0f0f0f;
+      border-color: var(--accent);
+      font-weight: 500;
+    }
+    .btn-primary:hover { background: #d4eb00; border-color: #d4eb00; color: #0f0f0f; }
+
+    /* ── Status message ── */
+    .status { text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--accent); height: 16px; margin-top: 8px; }
+
+    /* ════════════════════════════════════════
+       PRINT / INVOICE STYLES
+       ════════════════════════════════════════ */
+    @media print {
+      body { background: #fff !important; color: #000 !important; padding: 0 !important; }
+      .app-header, .section.no-print, .actions, .status, .add-line-btn,
+      .del-btn, .line-item-row td:last-child { display: none !important; }
+      .app { max-width: 100% !important; }
+      .invoice-preview { display: block !important; }
+      .editor-panel { display: none !important; }
+    }
+
+    /* ── Invoice Preview (shown on screen too, side by side on wide) ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width: 900px) {
+      body { padding: 2rem 2rem 4rem; }
+      .app { max-width: 1200px; }
+      .layout { grid-template-columns: 1fr 440px; align-items: start; }
+    }
+
+    /* ── Invoice document ── */
+    .invoice-doc {
+      background: #fff;
+      color: #1a1a16;
+      border-radius: 12px;
+      padding: 2.5rem;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .inv-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px solid #1a1a16;
+    }
+
+    .inv-logo { width: 100px; height: auto; display: block; margin-bottom: 8px; }
+    .inv-biz-name { font-size: 18px; font-weight: 500; color: #1a1a16; }
+    .inv-biz-sub { font-size: 11px; color: #7a7060; margin-top: 2px; }
+    .inv-contact { font-size: 11px; color: #7a7060; margin-top: 6px; line-height: 1.8; }
+
+    .inv-meta { text-align: right; }
+    .inv-label { font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 500; color: #c84b2f; letter-spacing: -0.02em; }
+    .inv-number { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #1a1a16; margin-top: 4px; }
+    .inv-date { font-size: 12px; color: #7a7060; margin-top: 2px; }
+    .inv-due { font-size: 12px; color: #7a7060; }
+
+    .inv-parties {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .inv-party-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #b0a898;
+      margin-bottom: 4px;
+    }
+
+    .inv-party-name { font-size: 14px; font-weight: 500; color: #1a1a16; }
+    .inv-party-detail { font-size: 12px; color: #7a7060; }
+
+    /* Invoice line items table */
+    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+
+    .inv-table thead tr {
+      background: #1a1a16;
+    }
+
+    .inv-table thead th {
+      padding: 8px 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #f5f0e8;
+      text-align: left;
+    }
+
+    .inv-table thead th.right { text-align: right; }
+
+    .inv-table tbody tr { border-bottom: 0.5px solid #ede8dc; }
+    .inv-table tbody tr:nth-child(even) { background: #fdfaf4; }
+
+    .inv-table tbody td {
+      padding: 9px 12px;
+      font-size: 12px;
+      color: #1a1a16;
+      vertical-align: top;
+    }
+
+    .inv-table tbody td.right { text-align: right; font-family: 'IBM Plex Mono', monospace; }
+    .inv-table tbody td.desc-cell { max-width: 220px; }
+    .inv-table tbody td .item-note { font-size: 11px; color: #7a7060; margin-top: 2px; }
+
+    /* Invoice totals */
+    .inv-totals { margin-left: auto; width: 260px; }
+
+    .inv-tot-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 12px;
+      border-bottom: 0.5px solid #ede8dc;
+    }
+
+    .inv-tot-row .itl { color: #7a7060; }
+    .inv-tot-row .itv { font-family: 'IBM Plex Mono', monospace; color: #1a1a16; }
+
+    .inv-tot-grand {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1a1a16;
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+
+    .inv-tot-grand .itl { color: #f5f0e8; font-weight: 500; font-size: 13px; }
+    .inv-tot-grand .itv { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 500; color: #e8ff3a; }
+
+    /* Invoice footer */
+    .inv-footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 0.5px solid #ede8dc;
+      font-size: 11px;
+      color: #b0a898;
+      line-height: 1.7;
+    }
+
+    .inv-policy {
+      margin-top: 0.75rem;
+      padding: 8px 12px;
+      background: #f5f0e8;
+      border-radius: 6px;
+      font-size: 10px;
+      color: #7a7060;
+      line-height: 1.6;
+    }
+
+    .inv-status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 6px;
+    }
+
+    .badge-quote { background: #faeeda; color: #854f0b; }
+    .badge-invoice { background: #e1f5ee; color: #0f6e56; }
+    .badge-paid { background: #1a1a16; color: #e8ff3a; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="app-header">
+    <div>
+      <div class="app-title">THE PRINT SHED — Invoice Tool</div>
+      <div class="app-sub">Fill in the form · preview updates live · print to PDF</div>
+    </div>
+    <div class="inv-num-badge" id="inv-num-display">INV-001</div>
+  </div>
+
+  <div class="layout">
+
+    <!-- ── EDITOR PANEL ── -->
+    <div class="editor-panel">
+
+      <!-- Invoice meta -->
+      <div class="section">
+        <div class="section-title">Invoice details</div>
+        <div class="row">
+          <div class="col">
+            <label class="lbl">Document type</label>
+            <select id="doc-type" onchange="update()">
+              <option value="quote">Quote</option>
+              <option value="invoice" selected>Invoice</option>
+              <option value="paid">Invoice — Paid</option>
+            </select>
+          </div>
+          <div class="col-sm">
+            <label class="lbl">Invoice #</label>
+            <input type="text" id="inv-num" value="INV-001" oninput="update()">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label class="lbl">Invoice date</label>
+            <input type="date" id="inv-date" oninput="update()">
+          </div>
+          <div class="col">
+            <label class="lbl">Due date</label>
+            <input type="date" id="inv-due" oninput="update()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer -->
+      <div class="section">
+        <div class="section-title">Customer</div>
+        <div class="row">
+          <div class="col">
+            <label class="lbl">Name</label>
+            <input type="text" id="cust-name" placeholder="e.g. Sarah M." oninput="update()">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label class="lbl">Contact / Messenger</label>
+            <input type="text" id="cust-contact" placeholder="e.g. facebook.com/sarah.m or phone" oninput="update()">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label class="lbl">Notes (optional)</label>
+            <input type="text" id="cust-notes" placeholder="e.g. Repeat customer, picked up in person" oninput="update()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Line items -->
+      <div class="section">
+        <div class="section-title">Line items</div>
+        <table class="line-items">
+          <thead>
+            <tr>
+              <th style="width:36%">Description</th>
+              <th style="width:14%">Material</th>
+              <th class="right" style="width:10%">Qty</th>
+              <th class="right" style="width:14%">Rate ($)</th>
+              <th class="right" style="width:14%">Amount</th>
+              <th style="width:12%"></th>
+            </tr>
+          </thead>
+          <tbody id="line-tbody"></tbody>
+        </table>
+        <button class="add-line-btn" onclick="addLine()">+ ADD LINE ITEM</button>
+      </div>
+
+      <!-- Pricing breakdown -->
+      <div class="section">
+        <div class="section-title">Pricing breakdown</div>
+        <div class="row">
+          <div class="col">
+            <label class="lbl">Print time (hrs)</label>
+            <input type="number" id="b-hours" value="0" min="0" step="0.5" oninput="update()">
+          </div>
+          <div class="col">
+            <label class="lbl">Hourly rate ($/hr)</label>
+            <input type="number" id="b-rate" value="2.00" min="0" step="0.25" oninput="update()">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label class="lbl">Material used (g)</label>
+            <input type="number" id="b-grams" value="0" min="0" step="5" oninput="update()">
+          </div>
+          <div class="col">
+            <label class="lbl">Material rate ($/g)</label>
+            <input type="number" id="b-gram-rate" value="0.01" min="0" step="0.01" oninput="update()">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label class="lbl">Prep / slicer time (min)</label>
+            <input type="number" id="b-prep" value="0" min="0" step="5" oninput="update()">
+          </div>
+          <div class="col">
+            <label class="lbl">Prep rate ($/hr)</label>
+            <input type="number" id="b-prep-rate" value="10.00" min="0" step="0.50" oninput="update()">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label class="lbl">Margin (%)</label>
+            <input type="number" id="b-margin" value="15" min="0" max="100" step="5" oninput="update()">
+          </div>
+          <div class="col">
+            <label class="lbl">Discount ($)</label>
+            <input type="number" id="b-discount" value="0" min="0" step="0.50" oninput="update()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="section">
+        <div class="section-title">Invoice notes</div>
+        <textarea id="inv-notes" placeholder="e.g. Thank you for your order! Payment via e-transfer or cash on pickup." oninput="update()">Thank you for your order! Payment due on receipt. Cash or e-transfer accepted.</textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button class="btn" onclick="resetInvoice()">CLEAR FORM</button>
+        <button class="btn" onclick="roundTotal()">ROUND TO $</button>
+        <button class="btn" onclick="saveToStorage()">SAVE DRAFT</button>
+        <button class="btn btn-primary" onclick="window.print()">PRINT / SAVE PDF →</button>
+      </div>
+      <div class="status" id="status-msg"></div>
+
+    </div>
+
+    <!-- ── INVOICE PREVIEW ── -->
+    <div class="invoice-doc" id="invoice-preview">
+
+      <div class="inv-top">
+        <div>
+          <img src="printshed_logo_dark.png" alt="The Print Shed" class="inv-logo" onerror="this.style.display='none'">
+          <div class="inv-biz-name">The Print Shed</div>
+          <div class="inv-biz-sub">3D Printing Services · Annapolis Valley, NS</div>
+          <div class="inv-contact">
+            Ryan Cameron<br>
+            facebook.com/ThePrintShedNS<br>
+            <span style="color:#c84b2f;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="563e333a3a3916223e3326243f3822253e3332783537">[email&#160;protected]</a></span> <span style="font-size:10px; color:#b0a898;">(coming soon)</span>
+          </div>
+        </div>
+        <div class="inv-meta">
+          <div class="inv-label" id="p-doc-type">INVOICE</div>
+          <div class="inv-status-badge badge-invoice" id="p-status-badge">Invoice</div>
+          <div class="inv-number" id="p-inv-num">INV-001</div>
+          <div class="inv-date" id="p-inv-date"></div>
+          <div class="inv-due" id="p-inv-due"></div>
+        </div>
+      </div>
+
+      <div class="inv-parties">
+        <div>
+          <div class="inv-party-label">From</div>
+          <div class="inv-party-name">The Print Shed</div>
+          <div class="inv-party-detail">Ryan Cameron</div>
+          <div class="inv-party-detail">Annapolis Valley, NS</div>
+        </div>
+        <div>
+          <div class="inv-party-label">Bill To</div>
+          <div class="inv-party-name" id="p-cust-name">—</div>
+          <div class="inv-party-detail" id="p-cust-contact"></div>
+          <div class="inv-party-detail" id="p-cust-notes"></div>
+        </div>
+      </div>
+
+      <!-- Line items table -->
+      <table class="inv-table">
+        <thead>
+          <tr>
+            <th style="width:38%">Description</th>
+            <th style="width:14%">Material</th>
+            <th class="right" style="width:8%">Qty</th>
+            <th class="right" style="width:14%">Rate</th>
+            <th class="right" style="width:14%">Amount</th>
+          </tr>
+        </thead>
+        <tbody id="p-line-tbody"></tbody>
+      </table>
+
+      <!-- Pricing breakdown section -->
+      <div id="p-breakdown-section" style="margin-bottom:1rem; padding:10px 12px; background:#f5f0e8; border-radius:8px; font-size:11px; color:#7a7060;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:#b0a898; margin-bottom:6px;">Pricing Breakdown</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;" id="p-breakdown-grid"></div>
+      </div>
+
+      <!-- Totals -->
+      <div class="inv-totals">
+        <div class="inv-tot-row"><span class="itl">Subtotal</span><span class="itv" id="p-subtotal">$0.00</span></div>
+        <div class="inv-tot-row" id="p-discount-row" style="display:none"><span class="itl">Discount</span><span class="itv" id="p-discount">−$0.00</span></div>
+        <div class="inv-tot-row"><span class="itl">HST (not registered)</span><span class="itv">$0.00</span></div>
+        <div class="inv-tot-grand">
+          <span class="itl">Total Due (CAD)</span>
+          <span class="itv" id="p-total">$0.00</span>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="inv-footer">
+        <div id="p-inv-notes"></div>
+        <div class="inv-policy">
+          The Print Shed provides 3D printing services only — we sell printer time and materials, not designs. Files are printed as provided. The Print Shed accepts no liability for copyright infringement arising from customer-supplied files.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // ── State ──────────────────────────────────────────────────────────
+  let lines = [];
+  let invoiceCounter = parseInt(localStorage.getItem('ps_inv_counter') || '1');
+
+  // ── Init ───────────────────────────────────────────────────────────
+  document.getElementById('inv-num').value = 'INV-' + String(invoiceCounter).padStart(3, '0');
+  document.getElementById('inv-num-display').textContent = 'INV-' + String(invoiceCounter).padStart(3, '0');
+
+  const today = new Date();
+  const fmt = d => d.toISOString().split('T')[0];
+  const due = new Date(today); due.setDate(due.getDate() + 14);
+  document.getElementById('inv-date').value = fmt(today);
+  document.getElementById('inv-due').value = fmt(due);
+
+  // Default line item
+  addLine('3D Print Job', 'PLA', 1, 0);
+
+  update();
+
+  // ── Line items ─────────────────────────────────────────────────────
+  function addLine(desc='', material='PLA', qty=1, rate=0) {
+    const id = Date.now() + Math.random();
+    lines.push({ id, desc, material, qty, rate });
+    renderLines();
+    update();
+  }
+
+  function removeLine(id) {
+    lines = lines.filter(l => l.id !== id);
+    renderLines();
+    update();
+  }
+
+  function renderLines() {
+    const tbody = document.getElementById('line-tbody');
+    tbody.innerHTML = '';
+    lines.forEach(l => {
+      const tr = document.createElement('tr');
+      tr.className = 'line-item-row';
+      tr.innerHTML = `
+        <td><input type="text" value="${l.desc}" placeholder="Description" oninput="updateLine(${l.id},'desc',this.value)" style="width:100%;"></td>
+        <td>
+          <select onchange="updateLine(${l.id},'material',this.value)" style="background:transparent;border:none;color:var(--text);font-family:var(--font-mono);font-size:12px;padding:4px 0;width:100%;">
+            <option ${l.material==='PLA'?'selected':''}>PLA</option>
+            <option ${l.material==='PETG'?'selected':''}>PETG</option>
+            <option ${l.material==='—'?'selected':''}>—</option>
+          </select>
+        </td>
+        <td><input type="number" class="qty" value="${l.qty}" min="1" oninput="updateLine(${l.id},'qty',+this.value)"></td>
+        <td><input type="number" class="rate" value="${l.rate}" min="0" step="0.01" oninput="updateLine(${l.id},'rate',+this.value)"></td>
+        <td class="amount">${fmtCAD(l.qty * l.rate)}</td>
+        <td><button class="del-btn" onclick="removeLine(${l.id})">×</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function updateLine(id, field, val) {
+    const l = lines.find(l => l.id === id);
+    if (l) { l[field] = val; renderLines(); update(); }
+  }
+
+  // ── Calculations ───────────────────────────────────────────────────
+  function calcBreakdown() {
+    const hours    = parseFloat(document.getElementById('b-hours').value)     || 0;
+    const rate     = parseFloat(document.getElementById('b-rate').value)      || 0;
+    const grams    = parseFloat(document.getElementById('b-grams').value)     || 0;
+    const gramRate = parseFloat(document.getElementById('b-gram-rate').value) || 0;
+    const prepMin  = parseFloat(document.getElementById('b-prep').value)      || 0;
+    const prepRate = parseFloat(document.getElementById('b-prep-rate').value) || 0;
+    const margin   = parseFloat(document.getElementById('b-margin').value)    || 0;
+
+    const printCost = hours * rate;
+    const matCost   = grams * gramRate;
+    const prepCost  = (prepMin / 60) * prepRate;
+    const raw       = printCost + matCost + prepCost;
+    const marginAmt = raw * (margin / 100);
+    const total     = raw + marginAmt;
+
+    return { printCost, matCost, prepCost, raw, marginAmt, total, hours, grams, prepMin, margin };
+  }
+
+  function fmtCAD(n) { return '$' + Math.abs(n).toFixed(2); }
+
+  // ── Main update ────────────────────────────────────────────────────
+  function update() {
+    const docType   = document.getElementById('doc-type').value;
+    const invNum    = document.getElementById('inv-num').value;
+    const invDate   = document.getElementById('inv-date').value;
+    const invDue    = document.getElementById('inv-due').value;
+    const custName  = document.getElementById('cust-name').value || '—';
+    const custCont  = document.getElementById('cust-contact').value;
+    const custNotes = document.getElementById('cust-notes').value;
+    const discount  = parseFloat(document.getElementById('b-discount').value) || 0;
+    const notes     = document.getElementById('inv-notes').value;
+
+    // Doc type label
+    const labels = { quote: 'QUOTE', invoice: 'INVOICE', paid: 'INVOICE' };
+    const badges = {
+      quote:   ['QUOTE',    'badge-quote'],
+      invoice: ['INVOICE',  'badge-invoice'],
+      paid:    ['PAID ✓',   'badge-paid']
+    };
+
+    document.getElementById('p-doc-type').textContent = labels[docType];
+    document.getElementById('inv-num-display').textContent = invNum;
+    const badge = document.getElementById('p-status-badge');
+    badge.textContent = badges[docType][0];
+    badge.className = 'inv-status-badge ' + badges[docType][1];
+
+    // Invoice number / dates
+    document.getElementById('p-inv-num').textContent = invNum;
+    document.getElementById('p-inv-date').textContent = invDate ? 'Date: ' + invDate : '';
+    document.getElementById('p-inv-due').textContent  = invDue  ? (docType==='quote'?'Valid until: ':'Due: ') + invDue : '';
+
+    // Customer
+    document.getElementById('p-cust-name').textContent    = custName;
+    document.getElementById('p-cust-contact').textContent = custCont;
+    document.getElementById('p-cust-notes').textContent   = custNotes;
+
+    // Line items in preview
+    const ptbody = document.getElementById('p-line-tbody');
+    ptbody.innerHTML = '';
+    let lineSubtotal = 0;
+    lines.forEach(l => {
+      const amt = l.qty * l.rate;
+      lineSubtotal += amt;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="desc-cell">${l.desc || '—'}</td>
+        <td>${l.material}</td>
+        <td class="right">${l.qty}</td>
+        <td class="right">${fmtCAD(l.rate)}</td>
+        <td class="right">${fmtCAD(amt)}</td>
+      `;
+      ptbody.appendChild(tr);
+    });
+
+    // Breakdown
+    const b = calcBreakdown();
+    const grid = document.getElementById('p-breakdown-grid');
+    const bSection = document.getElementById('p-breakdown-section');
+
+    if (b.hours > 0 || b.grams > 0 || b.prepMin > 0) {
+      bSection.style.display = 'block';
+      grid.innerHTML = `
+        <span>Print time: ${b.hours}hrs @ ${fmtCAD(parseFloat(document.getElementById('b-rate').value))}/hr</span>
+        <span style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmtCAD(b.printCost)}</span>
+        <span>Material: ${b.grams}g @ ${fmtCAD(parseFloat(document.getElementById('b-gram-rate').value))}/g</span>
+        <span style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmtCAD(b.matCost)}</span>
+        <span>Prep / slicer: ${b.prepMin}min</span>
+        <span style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmtCAD(b.prepCost)}</span>
+        <span>Margin (${b.margin}%)</span>
+        <span style="text-align:right;font-family:'IBM Plex Mono',monospace;">${fmtCAD(b.marginAmt)}</span>
+      `;
+    } else {
+      bSection.style.display = 'none';
+    }
+
+    // Totals — use breakdown total if line items are zero/default, otherwise line items
+    const subtotal = lineSubtotal > 0 ? lineSubtotal : b.total;
+    const grandTotal = Math.max(0, subtotal - discount);
+
+    document.getElementById('p-subtotal').textContent = fmtCAD(subtotal);
+
+    const discRow = document.getElementById('p-discount-row');
+    if (discount > 0) {
+      discRow.style.display = 'flex';
+      document.getElementById('p-discount').textContent = '−' + fmtCAD(discount);
+    } else {
+      discRow.style.display = 'none';
+    }
+
+    document.getElementById('p-total').textContent = fmtCAD(grandTotal);
+    document.getElementById('p-inv-notes').textContent = notes;
+  }
+
+  // ── Invoice numbering ──────────────────────────────────────────────
+  function bumpInvoiceNumber() {
+    invoiceCounter++;
+    localStorage.setItem('ps_inv_counter', invoiceCounter);
+    const newNum = 'INV-' + String(invoiceCounter).padStart(3, '0');
+    document.getElementById('inv-num').value = newNum;
+    update();
+  }
+
+  // ── Save / Reset ───────────────────────────────────────────────────
+  function roundTotal() {
+    // Read current grand total from preview, round it, and adjust discount to make it land there
+    const totalEl = document.getElementById('p-total');
+    const current = parseFloat(totalEl.textContent.replace('$','')) || 0;
+    const rounded = Math.round(current);
+    if (rounded === current) { showStatus('Already a round number.'); return; }
+
+    // Work backwards: subtotal - discount = rounded, so discount = subtotal - rounded
+    const subtotalEl = document.getElementById('p-subtotal');
+    const subtotal = parseFloat(subtotalEl.textContent.replace('$','')) || 0;
+    const newDiscount = Math.max(0, subtotal - rounded);
+    document.getElementById('b-discount').value = newDiscount.toFixed(2);
+    update();
+    showStatus('Rounded to $' + rounded + '.00');
+  }
+
+  function saveToStorage() {
+    const draft = {
+      invNum:    document.getElementById('inv-num').value,
+      docType:   document.getElementById('doc-type').value,
+      invDate:   document.getElementById('inv-date').value,
+      invDue:    document.getElementById('inv-due').value,
+      custName:  document.getElementById('cust-name').value,
+      custCont:  document.getElementById('cust-contact').value,
+      custNotes: document.getElementById('cust-notes').value,
+      notes:     document.getElementById('inv-notes').value,
+      lines,
+      breakdown: {
+        hours:    document.getElementById('b-hours').value,
+        rate:     document.getElementById('b-rate').value,
+        grams:    document.getElementById('b-grams').value,
+        gramRate: document.getElementById('b-gram-rate').value,
+        prep:     document.getElementById('b-prep').value,
+        prepRate: document.getElementById('b-prep-rate').value,
+        margin:   document.getElementById('b-margin').value,
+        discount: document.getElementById('b-discount').value,
+      }
+    };
+    localStorage.setItem('ps_draft', JSON.stringify(draft));
+    showStatus('Draft saved.');
+  }
+
+  function resetInvoice() {
+    if (!confirm('Clear the form and start a new invoice?')) return;
+    bumpInvoiceNumber();
+    document.getElementById('cust-name').value    = '';
+    document.getElementById('cust-contact').value = '';
+    document.getElementById('cust-notes').value   = '';
+    document.getElementById('b-hours').value   = '0';
+    document.getElementById('b-grams').value   = '0';
+    document.getElementById('b-prep').value    = '0';
+    document.getElementById('b-discount').value = '0';
+    lines = [];
+    addLine('3D Print Job', 'PLA', 1, 0);
+    update();
+    showStatus('New invoice started — ' + document.getElementById('inv-num').value);
+  }
+
+  function showStatus(msg) {
+    const el = document.getElementById('status-msg');
+    el.textContent = msg;
+    setTimeout(() => { el.textContent = ''; }, 2500);
+  }
+
+  // Load draft on open if exists
+  const saved = localStorage.getItem('ps_draft');
+  if (saved) {
+    try {
+      const d = JSON.parse(saved);
+      document.getElementById('inv-num').value    = d.invNum    || '';
+      document.getElementById('doc-type').value   = d.docType   || 'invoice';
+      document.getElementById('inv-date').value   = d.invDate   || '';
+      document.getElementById('inv-due').value    = d.invDue    || '';
+      document.getElementById('cust-name').value  = d.custName  || '';
+      document.getElementById('cust-contact').value = d.custCont || '';
+      document.getElementById('cust-notes').value = d.custNotes || '';
+      document.getElementById('inv-notes').value  = d.notes     || '';
+      if (d.breakdown) {
+        document.getElementById('b-hours').value    = d.breakdown.hours;
+        document.getElementById('b-rate').value     = d.breakdown.rate;
+        document.getElementById('b-grams').value    = d.breakdown.grams;
+        document.getElementById('b-gram-rate').value = d.breakdown.gramRate;
+        document.getElementById('b-prep').value     = d.breakdown.prep;
+        document.getElementById('b-prep-rate').value = d.breakdown.prepRate;
+        document.getElementById('b-margin').value   = d.breakdo
