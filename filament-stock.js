@@ -44,7 +44,7 @@ const FILAMENT_STOCK = [
   { colour: 'Silk Green',         hex: '#72bf6a',  material: 'PLA Silk+', inStock: true, special: true },
   { colour: 'Silk Mint',          hex: '#a8d8b9',  material: 'PLA Silk+', inStock: true, special: true },
   { colour: 'Silk Green/Blue Mix',hex: '#4aab9a',  material: 'PLA Silk+', inStock: true, special: true },
-  { colour: 'Silk Silver',        hex: '#C0C0C0',  material: 'PLA Silk+', inStock: false, special: true },
+  { colour: 'Silk Silver',        hex: '#C0C0C0',  material: 'PLA Silk+', inStock: true, special: true },
 
   // ── PETG ─────────────────────────────────────────────────────────
   { colour: 'Black',                      hex: '#1a1a1a',  material: 'PETG', inStock: true },
