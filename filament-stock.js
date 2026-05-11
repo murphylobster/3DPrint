@@ -54,6 +54,8 @@ const FILAMENT_STOCK = [
   { colour: 'Red',                        hex: '#FF0000',  material: 'PETG', inStock: true },
   { colour: 'Blue',                       hex: '#0062FF',  material: 'PETG', inStock: true },
   { colour: 'White',                      hex: '#FFFFFF',  material: 'PETG', inStock: true },
+  { colour: 'Yellow',                     hex: '#fec601',  material: 'PETG', inStock: true },
+  { colour: 'Olive Green',                hex: '#68724d',  material: 'PETG', inStock: true },
   { colour: 'Translucent Blue',           hex: '#87CEFA',  material: 'PETG', inStock: true, special: true },
 
 ];
