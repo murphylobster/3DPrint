@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="The Print Shed">
+  <title>The Print Shed — Get a Quote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:            #f2ead8;
+      --bg-dark:       #e8dcc4;
+      --surface:       #faf6ec;
+      --surface2:      #ede4cc;
+      --border:        rgba(120, 90, 40, 0.18);
+      --border-mid:    rgba(120, 90, 40, 0.28);
+      --text:          #2c1f0e;
+      --text-mid:      #4a3520;
+      --muted:         #7a6040;
+      --dim:           #a08860;
+      --accent:        #b85c00;
+      --accent-dark:   #8f4400;
+      --accent-light:  rgba(184, 92, 0, 0.09);
+      --accent-border: rgba(184, 92, 0, 0.28);
+      --green:         #3a6b3a;
+      --green-light:   rgba(58, 107, 58, 0.09);
+      --stamp:         #c8440a;
+      --font-display:  'Lora', serif;
+      --font-body:     'Source Sans 3', sans-serif;
+      --radius:        12px;
+    }
+
+    /* Grain texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.6;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 16px;
+      min-height: 100vh;
+      padding: 0 0 5rem;
+      line-height: 1.6;
+    }
+
+    /* ── Progress bar ── */
+    .progress-bar {
+      background: var(--text);
+      padding: 0.7rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .progress-inner { max-width: 600px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+    .progress-label { font-size: 13px; color: rgba(255,255,255,0.65); white-space: nowrap; min-width: 72px; font-family: var(--font-body); }
+    .progress-track { flex: 1; height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; width: 0%; }
+    .progress-steps { display: flex; gap: 5px; }
+    .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.25); transition: all 0.3s; }
+    .progress-dot.done { background: var(--accent); border-color: var(--accent); }
+    .progress-dot.active { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 2px rgba(184,92,0,0.4); }
+
+    /* ── Hero ── */
+    .hero {
+      background: var(--text);
+      padding: 3rem 1.5rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative rule lines — old-fashioned border feel */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      border: 1px solid rgba(255,255,255,0.07);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 18px;
+      border: 0.5px solid rgba(255,255,255,0.04);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .hero-eyebrow::before,
+    .hero-eyebrow::after {
+      content: '';
+      display: block;
+      height: 0.5px;
+      width: 32px;
+      background: var(--accent);
+      opacity: 0.5;
+    }
+
+    .hero-logo {
+      display: block;
+      width: 44%;
+      max-width: 200px;
+      height: auto;
+      margin: 0 auto 1.25rem;
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.7rem, 6vw, 2.5rem);
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 0.85rem;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: #e8b070;
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.58);
+      line-height: 1.7;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    /* ── Main layout ── */
+    .main { max-width: 600px; margin: 0 auto; padding: 1.75rem 1.25rem 0; }
+
+    /* ── Section divider label ── */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 2rem 0 1rem;
+    }
+
+    .section-label-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--text);
+      color: var(--bg);
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .section-label-text { flex: 1; }
+
+    .section-label-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .section-label-sub {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 0.5px;
+      background: var(--border-mid);
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      /* Subtle drop shadow like a piece of paper */
+      box-shadow: 0 2px 8px rgba(80, 50, 10, 0.08), 0 1px 2px rgba(80, 50, 10, 0.06);
+      opacity: 0;
+      transform: translateY(14px);
+      animation: riseUp 0.45s ease forwards;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.05s; }
+    .card:nth-child(2) { animation-delay: 0.10s; }
+    .card:nth-child(3) { animation-delay: 0.15s; }
+    .card:nth-child(4) { animation-delay: 0.20s; }
+    .card:nth-child(5) { animation-delay: 0.25s; }
+    .card:nth-child(6) { animation-delay: 0.30s; }
+    .card:nth-child(7) { animation-delay: 0.35s; }
+
+    @keyframes riseUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Material pills ── */
+    .pill-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+
+    .pill {
+      padding: 12px 20px;
+      border: 1.5px solid var(--border-mid);
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--muted);
+      background: var(--surface2);
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      font-family: var(--font-body);
+    }
+
+    .pill:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+    .pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(184, 92, 0, 0.25);
+    }
+
+    .pill-hint { font-size: 12px; margin-left: 6px; opacity: 0.65; }
+
+    /* ── Material blurb ── */
+    .material-blurb {
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: var(--bg-dark);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--muted);
+      transition: opacity 0.2s ease;
+    }
+
+    /* ── Form fields ── */
+    .field-group { margin-bottom: 14px; }
+    .field-group:last-child { margin-bottom: 0; }
+
+    label.field-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-mid);
+      margin-bottom: 6px;
+      font-family: var(--font-body);
+    }
+
+    .field-hint {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      line-height: 1.6;
+    }
+
+    input[type=text], input[type=number], select, textarea {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border-mid);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 400;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none;
+      appearance: none;
+      min-height: 52px;
+    }
+
+    input[type=number] { -moz-appearance: textfield; }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      background: #fff;
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a6040' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 40px;
+      cursor: pointer;
+    }
+
+    /* ── OR divider ── */
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 0.5px;
+      background: var(--border-mid);
+    }
+    .or-divider span {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-style: italic;
+      color: var(--dim);
+    }
+
+    /* ── Colour chips ── */
+    .colour-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+      gap: 10px;
+    }
+
+    .colour-chip {
+      border-radius: 8px;
+      padding: 12px 6px 10px;
+      text-align: center;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.15s;
+      background: var(--surface2);
+      user-select: none;
+    }
+
+    .colour-chip:hover { border-color: var(--border-mid); }
+    .colour-chip.active { border-color: var(--accent); background: var(--accent-light); }
+
+    .colour-swatch {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      margin: 0 auto 6px;
+      border: 1px solid rgba(0,0,0,0.14);
+    }
+
+    .colour-name { font-size: 11px; color: var(--muted); line-height: 1.3; }
+
+    .colour-badge {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 3px;
+    }
+
+    /* ── Pref pills ── */
+    .pref-pill {
+      flex: 1;
+      min-width: 140px;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border-mid);
+      border-radius: 8px;
+      cursor: pointer;
+      background: var(--surface2);
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .pref-pill:hover { border-color: var(--accent); background: var(--accent-light); }
+
+    .pref-pill-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .pref-pill-sub {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── URL row ── */
+    .url-row { display: flex; gap: 8px; }
+    .url-row input { flex: 1; }
+
+    .browse-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+    .browse-btn {
+      padding: 10px 16px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border-mid);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: var(--font-body);
+    }
+
+    .browse-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+    /* ── URL preview ── */
+    .url-preview {
+      margin-top: 10px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border-mid);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      animation: riseUp 0.2s ease forwards;
+    }
+    .url-preview.visible { display: flex; }
+    .url-preview-icon { width: 34px; height: 34px; background: var(--accent-light); border: 1px solid var(--accent-border); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .url-preview-text { flex: 1; min-width: 0; }
+    .url-preview-title { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .url-preview-source { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+    /* ── Explainer box ── */
+    .explainer {
+      background: var(--bg-dark);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--dim);
+      padding: 14px 16px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.75;
+      margin-bottom: 18px;
+    }
+
+    .explainer strong { color: var(--text-mid); font-weight: 600; }
+    .explainer a { color: var(--accent); text-decoration: none; }
+    .explainer a:hover { text-decoration: underline; }
+
+    /* ── Validation ── */
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+    .shake { animation: shake 0.4s ease; }
+
+    .field-error {
+      font-size: 13px;
+      color: var(--stamp);
+      margin-top: 8px;
+      display: none;
+      font-style: italic;
+    }
+    .field-error.visible { display: block; }
+
+    /* ── Promise box ── */
+    .promise-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(80, 50, 10, 0.08);
+    }
+
+    .promise-inner {
+      background: var(--green-light);
+      border-left: 3px solid var(--green);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 15px;
+      color: var(--text-mid);
+      line-height: 1.7;
+    }
+
+    .promise-inner strong { color: var(--green); font-weight: 600; }
+
+    /* ── Order summary ── */
+    .summary-card {
+      background: var(--surface);
+      border: 1.5px solid var(--accent-border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(80, 50, 10, 0.08);
+      display: none;
+    }
+
+    .summary-label {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 14px;
+    }
+
+    /* ── CTA Button ── */
+    .contact-btn {
+      width: 100%;
+      padding: 18px;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      min-height: 60px;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 14px rgba(184, 92, 0, 0.3);
+      letter-spacing: 0.01em;
+    }
+
+    .contact-btn:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(184, 92, 0, 0.35); }
+    .contact-btn:active { transform: scale(0.98) translateY(0); }
+    .contact-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+
+    .contact-sub {
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 12px;
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    /* ── Scroll to top ── */
+    .scroll-top {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.25rem;
+      width: 44px;
+      height: 44px;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      z-index: 200;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 2px 10px rgba(44, 31, 14, 0.25);
+    }
+    .scroll-top.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .scroll-top:hover { background: var(--accent); }
+    .scroll-top svg { width: 18px; height: 18px; }
+
+    /* ── Footer ── */
+    footer {
+      max-width: 600px;
+      margin: 2.5rem auto 0;
+      padding: 2rem 1.25rem 2rem;
+      border-top: 1px solid var(--border-mid);
+      text-align: center;
+    }
+
+    .footer-logo-wrap {
+      margin-bottom: 1rem;
+    }
+
+    .footer-logo-wrap img {
+      height: 56px;
+      width: auto;
+      opacity: 0.65;
+    }
+
+    .footer-disclaimer {
+      font-size: 12px;
+      color: var(--dim);
+      line-height: 1.8;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    /* Decorative stamp element */
+    .stamp {
+      display: inline-block;
+      border: 2.5px solid var(--stamp);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--stamp);
+      opacity: 0.6;
+      transform: rotate(-2deg);
+      margin-bottom: 1.25rem;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+<div class="progress-bar">
+  <div class="progress-inner">
+    <span class="progress-label" id="progress-label">Step 1 of 4</span>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-steps" id="progress-steps"></div>
+  </div>
+</div>
+
+<button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 10L8 5L13 10"/></svg>
+</button>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Annapolis Valley, NS</div>
+    <img src="printshed_logo.png" alt="The Print Shed" class="hero-logo">
+    <h1>Let's get you a <em>quote</em></h1>
+    <p>Fill in a few details below and we'll work out the cost for you — usually within 24 hours. No obligation, no fuss.</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Step 1: Material -->
+  <div class="section-label" style="margin-top: 1.5rem;">
+    <div class="section-label-num">1</div>
+    <div class="section-label-text">
+      <div class="section-label-title">Choose your material</div>
+      <div class="section-label-sub">Both are strong, reliable options for most prints</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="pill-group">
+      <div class="pill" data-material="PLA" onclick="selectMaterial(this)">
+        PLA <span class="pill-hint">— general use</span>
+      </div>
+      <div class="pill" data-material="PETG" onclick="selectMaterial(this)">
+        PETG <span class="pill-hint">— stronger, heat resistant</span>
+      </div>
+    </div>
+    <div class="field-error" id="material-error">Please select a material before sending — this helps us match your print to the right filament.</div>
+    <div id="material-blurb" class="material-blurb"></div>
+  </div>
+
+  <!-- Step 2: What to print -->
+  <div class="section-label">
+    <div class="section-label-num">2</div>
+    <div class="section-label-text">
+      <div class="section-label-title">What would you like printed?</div>
+      <div class="section-label-sub">A link or a description — either works</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="explainer">
+      Most 3D prints come from free design websites like
+      <a href="https://makerworld.com" target="_blank">Makerworld</a>,
+      <a href="https://www.printables.com" target="_blank">Printables</a>, or
+      <a href="https://www.thingiverse.com" target="_blank">Thingiverse</a>.
+      If you found something you like on one of those sites, <strong>copy the address from your browser and paste it below.</strong>
+      Don't have a link? No problem — just describe what you want in plain English.
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Option A — Paste a link</label>
+      <div class="field-hint">Open the design on Makerworld, Printables, or Thingiverse, then copy the address from your browser bar and paste it here.</div>
+      <input type="text" id="file-url" placeholder="e.g. https://makerworld.com/en/models/12345" oninput="handleUrlInput(this.value)">
+      <div class="url-preview" id="url-preview">
+        <div class="url-preview-icon">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"><path d="M6 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1v-3M9 1h6m0 0v6m0-6L7 9"/></svg>
+        </div>
+        <div class="url-preview-text">
+          <div class="url-preview-title" id="url-preview-title">Link detected</div>
+          <div class="url-preview-source" id="url-preview-source"></div>
+        </div>
+      </div>
+      <div class="browse-row">
+        <a href="https://makerworld.com" target="_blank" class="browse-btn">Browse Makerworld</a>
+        <a href="https://www.printables.com" target="_blank" class="browse-btn">Browse Printables</a>
+        <a href="https://www.thingiverse.com" target="_blank" class="browse-btn">Browse Thingiverse</a>
+      </div>
+    </div>
+
+    <div class="or-divider"><span>or</span></div>
+
+    <div class="field-group">
+      <label class="field-label">Option B — Describe what you want</label>
+      <div class="field-hint">Tell us what you're looking for in plain English — size, shape, what it's for, anything that helps. We'll find or create a suitable file.</div>
+      <textarea id="description" placeholder="e.g. A hook that mounts on the wall to hold a bike helmet. Roughly the size of my palm. Doesn't need to be fancy."></textarea>
+      <div class="field-error" id="design-error">Please paste a link or describe what you'd like printed before sending.</div>
+    </div>
+  </div>
+
+  <!-- Step 3: Colour -->
+  <div class="section-label">
+    <div class="section-label-num">3</div>
+    <div class="section-label-text">
+      <div class="section-label-title">Pick a colour</div>
+      <div class="section-label-sub">Choose from stock, or tell us your preference</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <!-- Quick picks -->
+    <div class="field-group">
+      <label class="field-label">Quick picks</label>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div id="pref-match" class="pref-pill" onclick="selectPref('match')">
+          <div class="pref-pill-title">Match the design</div>
+          <div class="pref-pill-sub">Print it to look like the picture I found online</div>
+        </div>
+        <div id="pref-any" class="pref-pill" onclick="selectPref('any')">
+          <div class="pref-pill-title">I don't mind</div>
+          <div class="pref-pill-sub">Any colour is fine — your call</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colour grid -->
+    <div id="colour-grid-wrap">
+      <div class="field-group" style="margin-top:14px;">
+        <label class="field-label">Or pick a specific colour</label>
+        <div class="field-hint">These are what we have in stock right now:</div>
+        <div class="colour-grid" id="colour-grid"></div>
+        <div id="colour-prompt" style="font-size:14px; color:var(--muted); padding:6px 0;">Select a material in step 1 to see available colours.</div>
+      </div>
+    </div>
+
+    <div id="colour-other-wrap">
+      <div class="field-group" style="margin-bottom:0;">
+        <label class="field-label">Something else in mind?</label>
+        <input type="text" id="colour-other" placeholder="e.g. olive green, dark red, doesn't matter…">
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Notes -->
+  <div class="section-label">
+    <div class="section-label-num">4</div>
+    <div class="section-label-text">
+      <div class="section-label-title">Anything else we should know?</div>
+      <div class="section-label-sub">Optional — but helpful</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="field-hint">Quantity, size, deadline, special requests — whatever's relevant. Leave it blank if you're not sure.</div>
+    <textarea id="notes" placeholder="e.g. I need 3 of these, roughly palm-sized. No big rush but ideally within 2 weeks." style="min-height: 110px;"></textarea>
+  </div>
+
+  <!-- Promise box -->
+  <div class="promise-box">
+    <div class="promise-inner">
+      <strong>We'll do the math.</strong><br>
+      Once you send your details, we'll pull up your file, run it through our printer software, and get back to you with an exact quote — usually within 24 hours. No obligation to proceed.
+    </div>
+  </div>
+
+  <!-- Order summary -->
+  <div class="summary-card" id="summary-step">
+    <div class="summary-label">Your request so far</div>
+    <div id="summary-rows"></div>
+    <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border); font-size:13px; color:var(--muted); line-height:1.6; font-style:italic;">
+      Something look wrong? Scroll up to make changes before sending.
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <a id="messenger-btn" href="#" class="contact-btn" onclick="openMessenger(event)">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.918 1.32 5.53 3.407 7.28V22l3.101-1.697A10.56 10.56 0 0 0 12 20.485c5.523 0 10-4.144 10-9.242S17.523 2 12 2zm1.044 12.426-2.55-2.72-4.977 2.72 5.474-5.808 2.613 2.72 4.914-2.72-5.474 5.808z"/></svg>
+    Send details &amp; get a quote
+  </a>
+  <div class="contact-sub">Opens Facebook Messenger — we'll confirm your quote and turnaround time before anything starts.</div>
+
+</div><!-- /.main -->
+
+<footer>
+  <div class="footer-logo-wrap">
+    <img src="printshed_logo_dark.png" alt="The Print Shed">
+  </div>
+  <div class="footer-disclaimer">
+    The Print Shed provides 3D printing services only — we sell printer time and materials, not designs. All files and designs submitted for printing remain the intellectual property of their respective owners. Customers are responsible for ensuring they have the right to reproduce any design they submit. The Print Shed accepts no liability for copyright infringement arising from customer-supplied files.
+  </div>
+</footer>
+
+<script src="filament-stock.js"></script>
+<script>
+  // ═══════════════════════════════════════════════════════════════════
+  // Colours loaded from filament-stock.js — edit that file to update
+  // ═══════════════════════════════════════════════════════════════════
+
+  function buildColours() {
+    const out = {};
+    (FILAMENT_STOCK || []).filter(s => s.inStock).forEach(s => {
+      const key = s.material.startsWith('PETG') ? 'PETG' : 'PLA';
+      if (!out[key]) out[key] = [];
+      out[key].push({ name: s.colour, hex: s.hex, material: s.material, special: s.special || false });
+    });
+    return out;
+  }
+
+  const colours = buildColours();
+  const TOTAL_STEPS = 4;
+
+  // ── Progress bar ─────────────────────────────────────────────────
+  function initProgress() {
+    const stepsEl = document.getElementById('progress-steps');
+    stepsEl.innerHTML = '';
+    for (let i = 0; i < TOTAL_STEPS; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'progress-dot';
+      dot.id = 'pdot-' + i;
+      stepsEl.appendChild(dot);
+    }
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const url   = document.getElementById('file-url').value.trim();
+    const desc  = document.getElementById('description').value.trim();
+    const notes = document.getElementById('notes').value.trim();
+    const noPref = colourPref !== null;
+
+    const steps = [
+      selectedMaterial !== null,
+      url.length > 0 || desc.length > 0,
+      noPref || selectedColours.size > 0 || document.getElementById('colour-other').value.trim().length > 0,
+      notes.length > 0
+    ];
+
+    const done = steps.filter(Boolean).length;
+    const pct  = Math.round((done / TOTAL_STEPS) * 100);
+
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = `Step ${Math.min(done + 1, TOTAL_STEPS)} of ${TOTAL_STEPS}`;
+
+    for (let i = 0; i < TOTAL_STEPS; i++) {
+      const dot = document.getElementById('pdot-' + i);
+      dot.className = 'progress-dot' + (steps[i] ? ' done' : (i === done ? ' active' : ''));
+    }
+
+    updateSummary();
+  }
+
+  // ── Order summary ────────────────────────────────────────────────
+  function updateSummary() {
+    const url  = document.getElementById('file-url').value.trim();
+    const desc = document.getElementById('description').value.trim();
+    const notes = document.getElementById('notes').value.trim();
+    const other = document.getElementById('colour-other').value.trim();
+    const colourList = [...selectedColours];
+    if (other) colourList.push(other);
+
+    const rows = [];
+
+    if (selectedMaterial) rows.push({ label: 'Material', value: selectedMaterial });
+
+    if (colourPref === 'match')       rows.push({ label: 'Colour', value: 'Match the design' });
+    else if (colourPref === 'any')    rows.push({ label: 'Colour', value: 'No preference — any colour' });
+    else if (colourList.length)       rows.push({ label: 'Colour', value: colourList.join(', ') });
+
+    if (url) {
+      let display = url;
+      try { display = new URL(url).hostname.replace('www.','') + '/…'; } catch(e) {}
+      rows.push({ label: 'Design link', value: display });
+    }
+    if (desc) rows.push({ label: 'Description', value: desc.length > 60 ? desc.slice(0, 57) + '…' : desc });
+    if (notes) rows.push({ label: 'Notes', value: notes.length > 60 ? notes.slice(0, 57) + '…' : notes });
+
+    const step = document.getElementById('summary-step');
+    const container = document.getElementById('summary-rows');
+
+    if (rows.length === 0) { step.style.display = 'none'; return; }
+
+    step.style.display = 'block';
+    container.innerHTML = rows.map(r => `
+      <div style="display:flex; gap:14px; padding:8px 0; border-bottom:1px solid var(--border); align-items:flex-start;">
+        <span style="font-size:13px; color:var(--muted); min-width:96px; flex-shrink:0;">${r.label}</span>
+        <span style="font-size:14px; color:var(--text); line-height:1.5;">${r.value}</span>
+      </div>
+    `).join('');
+  }
+
+  // ── URL preview ──────────────────────────────────────────────────
+  let urlDebounce = null;
+  function handleUrlInput(val) {
+    clearTimeout(urlDebounce);
+    const preview = document.getElementById('url-preview');
+    if (!val.trim()) { preview.classList.remove('visible'); updateProgress(); return; }
+    urlDebounce = setTimeout(() => {
+      const isMW = val.includes('makerworld.com');
+      const isPR = val.includes('printables.com');
+      if (isMW || isPR) {
+        const source = isMW ? 'Makerworld' : 'Printables';
+        const slug = val.split('/').filter(Boolean).pop() || '';
+        const title = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Design link';
+        document.getElementById('url-preview-title').textContent = title.length > 2 ? title : 'Design link detected';
+        document.getElementById('url-preview-source').textContent = 'From ' + source;
+        preview.classList.add('visible');
+      } else if (val.startsWith('http')) {
+        document.getElementById('url-preview-title').textContent = 'Custom link';
+        try { document.getElementById('url-preview-source').textContent = new URL(val).hostname || val; } catch(e) {}
+        preview.classList.add('visible');
+      } else {
+        preview.classList.remove('visible');
+      }
+      updateProgress();
+    }, 400);
+  }
+
+  // ── Material blurb ───────────────────────────────────────────────
+  const materialInfo = {
+    PLA: {
+      good: ['Decorative items', 'Toys & figures', 'Organizers & storage', 'Planters (indoors)', 'Cosplay props', 'Prototypes'],
+      bad: ['Car interiors', 'Outdoor use in summer', 'Items near heat sources', 'Dishwasher-safe items'],
+      note: 'Not recommended for anything that will sit in a hot car or direct sun, as it softens around 60°C.'
+    },
+    PETG: {
+      good: ['Outdoor items', 'Mechanical parts', 'Garage & workshop use', 'Enclosures & mounts', 'Living hinges & snap fits'],
+      bad: ['Ultra-fine detail prints', 'Painted/post-processed parts', 'High-heat environments'],
+      note: 'Tougher than PLA with good outdoor resistance — less colour variety, but built to last.'
+    }
+  };
+
+  let selectedMaterial = null;
+  let selectedColours  = new Set();
+
+  function updateMaterialBlurb() {
+    const blurb = document.getElementById('material-blurb');
+    blurb.style.opacity = '0';
+    setTimeout(() => {
+      if (!selectedMaterial) {
+        blurb.innerHTML = `
+          <div style="font-weight:600; color:var(--text-mid); margin-bottom:8px; font-size:15px;">Not sure which to pick?</div>
+          3D printing builds objects layer by layer from a digital file — like an inkjet printer, but building up in height instead of across a page. You can print almost anything: replacement parts, organizers, toys, hooks, custom gifts, and more.<br><br>
+          The <strong style="color:var(--text-mid);">material</strong> affects how strong and heat-resistant the final object is. Select one above and we'll explain the difference.
+        `;
+      } else {
+        const info = materialInfo[selectedMaterial];
+        blurb.innerHTML = `
+          <div style="font-weight:600; color:var(--text-mid); margin-bottom:8px; font-size:15px;">${selectedMaterial} — what to know</div>
+          <div style="margin-bottom:10px;">${info.note}</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+            <div>
+              <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.07em; color:var(--green); margin-bottom:6px;">✔ Good for</div>
+              ${info.good.map(i => `<div style="font-size:13px; padding:3px 0; color:var(--text-mid);">· ${i}</div>`).join('')}
+            </div>
+            <div>
+              <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.07em; color:var(--stamp); margin-bottom:6px;">✘ Avoid for</div>
+              ${info.bad.map(i => `<div style="font-size:13px; padding:3px 0; color:var(--text-mid);">· ${i}</div>`).join('')}
+            </div>
+          </div>
+        `;
+      }
+      blurb.style.opacity = '1';
+    }, 150);
+  }
+
+  // ── Colour selection ─────────────────────────────────────────────
+  let colourPref = null;
+
+  function selectPref(val) {
+    colourPref = colourPref === val ? null : val;
+
+    const matchEl = document.getElementById('pref-match');
+    const anyEl   = document.getElementById('pref-any');
+    const onStyle  = 'border-color:var(--accent); background:var(--accent-light);';
+    const offStyle = 'border-color:var(--border-mid); background:var(--surface2);';
+
+    if (colourPref === 'match') {
+      matchEl.style.cssText = onStyle; anyEl.style.cssText = offStyle;
+      document.getElementById('colour-grid-wrap').style.opacity = '0.4';
+      document.getElementById('colour-grid-wrap').style.pointerEvents = 'none';
+      document.getElementById('colour-other-wrap').style.opacity = '0.4';
+      document.getElementById('colour-other-wrap').style.pointerEvents = 'none';
+    } else if (colourPref === 'any') {
+      anyEl.style.cssText = onStyle; matchEl.style.cssText = offStyle;
+      document.getElementById('colour-grid-wrap').style.opacity = '0.4';
+      document.getElementById('colour-grid-wrap').style.pointerEvents = 'none';
+      document.getElementById('colour-other-wrap').style.opacity = '0.4';
+      document.getElementById('colour-other-wrap').style.pointerEvents = 'none';
+    } else {
+      matchEl.style.cssText = offStyle; anyEl.style.cssText = offStyle;
+      document.getElementById('colour-grid-wrap').style.opacity = '1';
+      document.getElementById('colour-grid-wrap').style.pointerEvents = '';
+      document.getElementById('colour-other-wrap').style.opacity = '1';
+      document.getElementById('colour-other-wrap').style.pointerEvents = '';
+    }
+
+    if (colourPref) {
+      document.querySelectorAll('.colour-chip').forEach(c => c.classList.remove('active'));
+      selectedColours.clear();
+      document.getElementById('colour-other').value = '';
+    }
+    updateProgress();
+  }
+
+  function selectMaterial(el) {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    selectedMaterial = el.dataset.material;
+    selectedColours.clear();
+    document.getElementById('material-error').classList.remove('visible');
+    renderColours();
+    updateMaterialBlurb();
+    updateProgress();
+  }
+
+  function renderColours() {
+    const grid   = document.getElementById('colour-grid');
+    const prompt = document.getElementById('colour-prompt');
+    grid.innerHTML = '';
+    if (!selectedMaterial) { if (prompt) prompt.style.display = 'block'; return; }
+    if (prompt) prompt.style.display = 'none';
+    const list = colours[selectedMaterial] || [];
+    list.forEach(c => {
+      const chip = document.createElement('div');
+      chip.className = 'colour-chip';
+      const subLabel = c.material && c.material !== selectedMaterial
+        ? `<div class="colour-name" style="font-size:10px;opacity:0.7;">${c.material}</div>` : '';
+      chip.innerHTML = `
+        <div class="colour-swatch" style="background:${c.hex}"></div>
+        <div class="colour-name">${c.name}</div>
+        ${subLabel}
+        ${c.special ? '<div class="colour-badge">Limited</div>' : ''}
+      `;
+      chip.onclick = () => {
+        chip.classList.toggle('active');
+        if (chip.classList.contains('active')) selectedColours.add(c.name);
+        else selectedColours.delete(c.name);
+        updateProgress();
+      };
+      grid.appendChild(chip);
+    });
+  }
+
+  // ── Scroll to top ────────────────────────────────────────────────
+  window.addEventListener('scroll', () => {
+    document.getElementById('scroll-top').classList.toggle('visible', window.scrollY > 300);
+  });
+
+  // ── Validation + Messenger ───────────────────────────────────────
+  function openMessenger(e) {
+    e.preventDefault();
+
+    const url   = document.getElementById('file-url').value.trim();
+    const desc  = document.getElementById('description').value.trim();
+    const notes = document.getElementById('notes').value.trim();
+    const other = document.getElementById('colour-other').value.trim();
+    const matErrEl = document.getElementById('material-error');
+    const errEl    = document.getElementById('design-error');
+    const step1    = document.querySelector('.card:nth-of-type(1)');
+    const step2    = document.querySelector('.card:nth-of-type(2)');
+
+    if (!selectedMaterial) {
+      matErrEl.classList.add('visible');
+      step1.classList.add('shake');
+      step1.addEventListener('animationend', () => step1.classList.remove('shake'), { once: true });
+      step1.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    matErrEl.classList.remove('visible');
+
+    if (!url && !desc) {
+      errEl.classList.add('visible');
+      step2.classList.add('shake');
+      step2.addEventListener('animationend', () => step2.classList.remove('shake'), { once: true });
+      step2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    errEl.classList.remove('visible');
+
+    const colourList = [...selectedColours];
+    if (other) colourList.push(other);
+
+    let msg = `Hi! I found The Print Shed and wanted to get a quote.\n\n`;
+    msg += `Material: ${selectedMaterial}\n`;
+    if (colourPref === 'match')    msg += `Colour preference: Match the design colours\n`;
+    else if (colourPref === 'any') msg += `Colour preference: No preference — any colour is fine\n`;
+    else if (colourList.length)    msg += `Colour preference: ${colourList.join(', ')}\n`;
+    if (url)   msg += `File/link: ${url}\n`;
+    if (desc)  msg += `Description: ${desc}\n`;
+    if (notes) msg += `Additional details: ${notes}\n`;
+    msg += `\nThanks!`;
+
+    window.open(`https://m.me/61580700602148?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  // ── Wire up text inputs to progress ─────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    ['description', 'notes', 'colour-other'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateProgress);
+    });
+  });
+
+  // ── Init ────────────────────────────────────────────────────────
+  renderColours();
+  updateMaterialBlurb();
+  initProgress();
+</script>
+</body>
+</html>
